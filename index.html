@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jashanpreet's Gym Routine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #000 url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=2575&auto=format&fit=crop') center center/cover no-repeat fixed;
+            background-blend-mode: overlay;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .font-anton {
+            font-family: 'Anton', sans-serif;
+        }
+        .day-nav-btn.active {
+            background-color: #dc2626; /* red-600 */
+            color: white;
+        }
+        .glassmorphism {
+            background: rgba(17, 24, 39, 0.6); /* gray-900 with opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .workout-item.active {
+            background-color: #dc2626;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.7);
+        }
+        .timer-display {
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .progress-bar-container {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-gray-200 antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-5xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="font-anton text-5xl md:text-7xl font-bold text-white uppercase tracking-wider" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.7);">Unleash Your Strength</h1>
+            <p class="text-lg text-gray-300 mt-2">Jashanpreet, your <strong>5:30 AM</strong> battle begins now. Dominate the day!</p>
+            <p id="currentDate" class="text-md text-gray-400 mt-1"></p>
+        </header>
+        
+        <!-- Timer Display Area -->
+        <div id="timer-container" class="hidden mb-8">
+            <div class="glassmorphism p-6 rounded-xl shadow-2xl">
+                <!-- Progress Bar -->
+                <div class="progress-bar-container w-full rounded-full h-2.5 mb-4">
+                    <div id="progressBar" class="bg-red-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+                <div id="timerDisplay" class="text-center">
+                    <div class="timer-status font-anton text-2xl tracking-widest mb-2 text-red-500">WORK</div>
+                    <div class="timer-clock font-anton text-7xl md:text-8xl text-white timer-display">00:00</div>
+                    <div class="timer-next-up text-gray-300 mt-2">Starting workout...</div>
+                    <!-- Timer Controls -->
+                    <div id="timer-controls" class="mt-6 flex justify-center items-center space-x-4">
+                        <button id="pauseResumeBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-full transition-colors">PAUSE</button>
+                        <button id="skipBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition-colors">SKIP</button>
+                        <button id="stopBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-full transition-colors">STOP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day Navigation -->
+        <nav class="flex justify-center mb-8 bg-black/50 p-2 rounded-full shadow-lg">
+            <button data-day="Sunday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Sun</button>
+            <button data-day="Monday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Mon</button>
+            <button data-day="Tuesday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Tue</button>
+            <button data-day="Wednesday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Wed</button>
+            <button data-day="Thursday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Thu</button>
+            <button data-day="Friday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Fri</button>
+            <button data-day="Saturday" class="day-nav-btn px-4 py-2 rounded-full text-sm font-medium transition-colors">Sat</button>
+        </nav>
+
+        <!-- Main Content: Schedule -->
+        <main id="scheduleContainer" class="space-y-8">
+            <!-- Content will be dynamically inserted here -->
+        </main>
+
+        <!-- Music Player -->
+        <footer class="mt-12">
+            <h2 class="font-anton text-3xl font-semibold text-center mb-4 text-white uppercase">Fuel Your Fire</h2>
+            <div class="glassmorphism p-4 rounded-lg shadow-xl">
+                <p class="text-gray-300 mb-4 text-center">Your personal soundtrack for the grind. Hit play and conquer.</p>
+                <div class="aspect-w-16 aspect-h-9">
+                    <iframe class="rounded-lg" src="https://www.youtube.com/embed/videoseries?list=PL4fGSI1pDJn6j_g_h_1Yh3h62p3-2vl_I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- DATA: Schedule for the week ---
+        const schedule = {
+            Tuesday: {
+                title: "Gym Day - Full Body A 🏋️",
+                workout: [
+                    { name: "Warm-up: 5-min walk + shoulder rolls", timer: 300, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Squats – 3x12", timer: 90, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Dumbbell Shoulder Press – 3x10", timer: 75, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Lunges – 3x10/leg", timer: 90, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Seated Row – 3x12", timer: 90, type: 'WORK' },
+                    { name: "Rest", timer: 30, type: 'REST' },
+                    { name: "Plank – 30s x 2", timer: 30, type: 'WORK' },
+                ],
+                diet: {
+                    title: "Fueling the Machine",
+                    meals: [
+                        { time: "Breakfast", items: "2 boiled eggs/tofu + 1 chapati + banana" },
+                        { time: "Lunch", items: "Dal + sabzi + 1 bowl brown rice + curd" },
+                        { time: "Snack", items: "Roasted chana or fruits" },
+                        { time: "Dinner", items: "Grilled paneer/chicken + salad" },
+                    ]
+                }
+            },
+            Wednesday: {
+                title: "Stretch + Light Walk 🧘‍♂️",
+                workout: [
+                    { name: "20-min brisk walk", timer: 1200, type: 'WORK' },
+                    { name: "Full-body stretching", timer: 600, type: 'WORK' },
+                    { name: "Optional yoga", timer: 300, type: 'WORK' },
+                ],
+                diet: {
+                    title: "Recovery Fuel",
+                    meals: [
+                        { time: "Breakfast", items: "Oats + milk + nuts" },
+                        { time: "Lunch", items: "Rajma + roti + cucumber salad" },
+                        { time: "Snack", items: "Buttermilk or fruit" },
+                        { time: "Dinner", items: "Moong dal khichdi + salad" },
+                    ]
+                }
+            },
+            Thursday: {
+                title: "Core + Cardio 🏃🧘‍♂️",
+                workout: [
+                    { name: "5-min warm-up", timer: 300, type: 'WORK' },
+                    { name: "Rest", timer: 45, type: 'REST' },
+                    { name: "Bicycle crunches – 3x20", timer: 60, type: 'WORK' },
+                    { name: "Rest", timer: 45, type: 'REST' },
+                    { name: "Leg raises – 3x15", timer: 60, type: 'WORK' },
+                    { name: "Rest", timer: 30, type: 'REST' },
+                    { name: "Plank – 1 min", timer: 60, type: 'WORK' },
+                    { name: "Treadmill walk – 20 mins", timer: 1200, type: 'WORK' },
+                ],
+                diet: {
+                     title: "Core Nutrition",
+                    meals: [
+                        { time: "Breakfast", items: "Upma + coconut water" },
+                        { time: "Lunch", items: "Chole + brown rice + curd" },
+                        { time: "Snack", items: "Handful almonds" },
+                        { time: "Dinner", items: "Grilled tofu + stir-fried veggies" },
+                    ]
+                }
+            },
+            Friday: {
+                title: "Rest + Walk 🧘‍♂️",
+                workout: [
+                    { name: "Light walk (20–30 mins)", timer: 1500, type: 'WORK' },
+                    { name: "Deep breathing & stretch", timer: 600, type: 'WORK' },
+                ],
+                diet: {
+                    title: "Light & Clean Meals",
+                    meals: [
+                        { time: "Note", items: "Same as Wednesday or light khichdi and fruit-based meals." },
+                    ]
+                }
+            },
+            Saturday: {
+                title: "Gym Day - Full Body B 🏋️",
+                workout: [
+                    { name: "Warm-up 5 mins", timer: 300, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Leg Press – 3x12", timer: 90, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Dumbbell Chest Press – 3x10", timer: 75, type: 'WORK' },
+                    { name: "Rest", timer: 60, type: 'REST' },
+                    { name: "Lat Pulldown – 3x12", timer: 90, type: 'WORK' },
+                    { name: "Rest", timer: 45, type: 'REST' },
+                    { name: "Russian Twists – 3x20", timer: 60, type: 'WORK' },
+                    { name: "Rest", timer: 30, type: 'REST' },
+                    { name: "Plank – 1 min", timer: 60, type: 'WORK' },
+                ],
+                diet: {
+                     title: "Power-Up Diet",
+                    meals: [
+                        { time: "Breakfast", items: "Paneer bhurji + toast" },
+                        { time: "Lunch", items: "Mixed veg curry + roti + salad" },
+                        { time: "Snack", items: "Fruit + green tea" },
+                        { time: "Dinner", items: "Lentil soup + oats chapati" },
+                    ]
+                }
+            },
+            Sunday: {
+                title: "Cardio + Flexibility 🏃🧘‍♂️",
+                workout: [
+                    { name: "25-min treadmill or cycling", timer: 1500, type: 'WORK' },
+                    { name: "Yoga/stretching (15 mins)", timer: 900, type: 'WORK' },
+                    { name: "Breathing exercises (Box breathing)", timer: 300, type: 'WORK' },
+                ],
+                diet: {
+                    title: "Light & Protein-Rich Meals",
+                    meals: [
+                        { time: "Note", items: "Same as Thursday or light protein-rich meals (dal, veg, fruits)." },
+                    ]
+                }
+            },
+            Monday: {
+                title: "Complete Rest 💤",
+                workout: [
+                    { name: "Optional walk/stretch (10–15 mins)", timer: 750, type: 'WORK' },
+                    { name: "Reflect on the week", timer: 0, type: 'NOTE' },
+                    { name: "Plan for upcoming gym day", timer: 0, type: 'NOTE' },
+                ],
+                diet: {
+                    title: "Eat Clean",
+                    meals: [
+                        { time: "Reminder", items: "Eat clean, no overeating. Try avoiding sugar, fried snacks, and sodas." },
+                    ]
+                }
+            }
+        };
+
+        // --- GLOBAL STATE & ELEMENTS ---
+        const scheduleContainer = document.getElementById('scheduleContainer');
+        const dayNavButtons = document.querySelectorAll('.day-nav-btn');
+        const timerContainer = document.getElementById('timer-container');
+        const progressBar = document.getElementById('progressBar');
+        const timerDisplay = document.getElementById('timerDisplay');
+        
+        let workoutQueue = [];
+        let currentWorkoutIndex = 0;
+        let currentTimerInterval = null;
+        let timeLeftOnPause = 0;
+        let timerState = 'stopped'; // 'stopped', 'running', 'paused', 'countdown'
+        let currentListItemTimerElement = null;
+        
+        const synth = new Tone.Synth().toDestination();
+        const countdownBeep = () => synth.triggerAttackRelease("A4", "16n", Tone.now());
+        const startBeep = () => synth.triggerAttackRelease("C5", "8n", Tone.now());
+        const longBeep = () => synth.triggerAttackRelease("C6", "4n", Tone.now());
+        const skipBeep = () => synth.triggerAttackRelease("E5", "8n", Tone.now());
+        const startWorkoutBeep = () => {
+            const now = Tone.now();
+            synth.triggerAttackRelease("C4", "8n", now);
+            synth.triggerAttackRelease("E4", "8n", now + 0.1);
+            synth.triggerAttackRelease("G4", "8n", now + 0.2);
+        };
+
+        // --- TIMER & WORKOUT LOGIC ---
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        function clearCurrentTimer() {
+            if (currentTimerInterval) {
+                clearInterval(currentTimerInterval);
+                currentTimerInterval = null;
+            }
+        }
+
+        function stopWorkout() {
+            clearCurrentTimer();
+            timerState = 'stopped';
+            timerContainer.classList.add('hidden');
+            const currentDay = document.querySelector('.day-nav-btn.active').dataset.day;
+            renderSchedule(currentDay); // Re-render to show the start button
+        }
+        
+        function pauseResumeWorkout() {
+            const btn = document.getElementById('pauseResumeBtn');
+            if (timerState === 'running') {
+                timerState = 'paused';
+                clearCurrentTimer();
+                btn.textContent = 'RESUME';
+                btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+            } else if (timerState === 'paused') {
+                timerState = 'running';
+                btn.textContent = 'PAUSE';
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                runTimer(timeLeftOnPause);
+            }
+        }
+        
+        function resetActiveListItemTimer() {
+             if (currentListItemTimerElement) {
+                const item = workoutQueue[currentWorkoutIndex];
+                if (item) {
+                    currentListItemTimerElement.textContent = formatTime(item.timer);
+                }
+            }
+        }
+
+        function skipItem() {
+            if (timerState === 'running' || timerState === 'paused') {
+                skipBeep();
+                clearCurrentTimer();
+                resetActiveListItemTimer();
+                currentWorkoutIndex++;
+                startNextItemInQueue();
+            }
+        }
+
+        function runTimer(duration) {
+            clearCurrentTimer();
+            timerState = 'running';
+            let timeLeft = duration;
+            timeLeftOnPause = duration;
+            const timerElement = timerDisplay.querySelector('.timer-clock');
+
+            currentTimerInterval = setInterval(() => {
+                timeLeft--;
+                timeLeftOnPause = timeLeft;
+                const formattedTime = formatTime(timeLeft);
+                timerElement.textContent = formattedTime;
+                if (currentListItemTimerElement) {
+                    currentListItemTimerElement.textContent = formattedTime;
+                }
+
+                if (timeLeft <= 0) {
+                    clearCurrentTimer();
+                    longBeep();
+                    currentWorkoutIndex++;
+                    startNextItemInQueue();
+                }
+            }, 1000);
+        }
+
+        function showNextUp(nextItem) {
+            clearCurrentTimer();
+            timerState = 'countdown';
+            let countdown = 5;
+            const timerElement = timerDisplay.querySelector('.timer-clock');
+            const statusElement = timerDisplay.querySelector('.timer-status');
+            const nextUpElement = timerDisplay.querySelector('.timer-next-up');
+            
+            statusElement.textContent = "GET READY...";
+            statusElement.className = 'timer-status font-anton text-2xl tracking-widest mb-2 text-yellow-400';
+            nextUpElement.textContent = `Next Up: ${nextItem.name}`;
+            timerElement.textContent = `00:0${countdown}`;
+            countdownBeep();
+            
+            currentTimerInterval = setInterval(() => {
+                countdown--;
+                timerElement.textContent = `00:0${countdown}`;
+                if (countdown > 0) {
+                    countdownBeep();
+                }
+                if (countdown <= 0) {
+                    clearCurrentTimer();
+                    startBeep();
+                    startTimerForItem(nextItem);
+                }
+            }, 1000);
+        }
+
+        function startTimerForItem(item) {
+            const statusElement = timerDisplay.querySelector('.timer-status');
+            const nextUpElement = timerDisplay.querySelector('.timer-next-up');
+            
+            // Highlight the current item in the list
+            document.querySelectorAll('.workout-item').forEach((el, index) => {
+                 el.classList.remove('active');
+            });
+            const activeListItem = document.getElementById(`workout-list-item-${currentWorkoutIndex}`);
+            if(activeListItem) activeListItem.classList.add('active');
+            
+            currentListItemTimerElement = document.getElementById(`timer-item-${currentWorkoutIndex}`);
+
+            statusElement.textContent = item.type;
+            statusElement.className = `timer-status font-anton text-2xl tracking-widest mb-2 ${item.type === 'WORK' ? 'text-red-500' : 'text-green-400'}`;
+            
+            const nextItem = workoutQueue[currentWorkoutIndex + 1];
+            nextUpElement.textContent = nextItem ? `Next Up: ${nextItem.name}` : "Final Round!";
+            
+            runTimer(item.timer);
+        }
+        
+        function fireConfetti() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        function completeWorkout() {
+             clearCurrentTimer();
+             timerState = 'stopped';
+             const statusElement = timerDisplay.querySelector('.timer-status');
+             const nextUpElement = timerDisplay.querySelector('.timer-next-up');
+             const timerClock = timerDisplay.querySelector('.timer-clock');
+             
+             fireConfetti();
+             statusElement.textContent = "WORKOUT COMPLETE";
+             statusElement.className = 'timer-status font-anton text-3xl tracking-widest mb-2 text-blue-400';
+             timerClock.textContent = "DONE";
+             nextUpElement.textContent = "Great work! You dominated it.";
+             document.getElementById('timer-controls').innerHTML = `<button onclick="stopWorkout()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors">FINISH</button>`;
+        }
+
+        function startNextItemInQueue() {
+            if (timerState === 'paused') {
+                timerState = 'running';
+                const btn = document.getElementById('pauseResumeBtn');
+                btn.textContent = 'PAUSE';
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+            }
+            
+            const progress = workoutQueue.length > 0 ? (currentWorkoutIndex / workoutQueue.length) * 100 : 0;
+            progressBar.style.width = `${progress}%`;
+
+            if (currentWorkoutIndex >= workoutQueue.length) {
+                progressBar.style.width = `100%`;
+                completeWorkout();
+                return;
+            }
+            
+            const currentItem = workoutQueue[currentWorkoutIndex];
+            const previousItem = currentWorkoutIndex > 0 ? workoutQueue[currentWorkoutIndex - 1] : null;
+
+            if (previousItem) {
+                showNextUp(currentItem);
+            } else {
+                startTimerForItem(currentItem);
+            }
+        }
+
+        async function startFullWorkout(day) {
+            workoutQueue = schedule[day].workout.filter(item => item.timer > 0);
+            if (workoutQueue.length === 0) return;
+            
+            currentWorkoutIndex = 0;
+            
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            startWorkoutBeep();
+            
+            // Setup timer controls
+            document.getElementById('pauseResumeBtn').onclick = pauseResumeWorkout;
+            document.getElementById('skipBtn').onclick = skipItem;
+            document.getElementById('stopBtn').onclick = stopWorkout;
+            
+            timerContainer.classList.remove('hidden');
+            document.getElementById('startWorkoutContainer').classList.add('hidden');
+            
+            startNextItemInQueue();
+        }
+
+        // --- UI RENDERING ---
+
+        function renderSchedule(day) {
+            const dayData = schedule[day];
+            if (!dayData) {
+                scheduleContainer.innerHTML = `<p class="text-center text-gray-400">No schedule found for this day.</p>`;
+                return;
+            }
+
+            const workoutHtml = dayData.workout.map((item, index) => {
+                if (item.type === 'NOTE') {
+                    return `<li class="workout-item flex justify-center items-center py-3 px-4 glassmorphism rounded-lg transition-all duration-300">
+                                <span class="text-gray-300 text-center">${item.name}</span>
+                            </li>`;
+                }
+                const duration = item.timer ? formatTime(item.timer) : '';
+                return `
+                    <li id="workout-list-item-${index}" class="workout-item flex justify-between items-center py-3 px-4 glassmorphism rounded-lg transition-all duration-300">
+                        <span class="font-bold ${item.type === 'REST' ? 'text-green-400' : 'text-gray-200'}">${item.name}</span>
+                        <span id="timer-item-${index}" class="text-lg font-mono text-gray-300">${duration}</span>
+                    </li>
+                `;
+            }).join('');
+
+            const dietHtml = dayData.diet.meals.map(meal => `
+                <li class="py-2 border-b border-gray-700">
+                    <strong class="font-bold text-red-500">${meal.time}:</strong>
+                    <span class="text-gray-300 ml-2">${meal.items}</span>
+                </li>
+            `).join('');
+            
+            const startButtonHtml = dayData.workout.some(w => w.timer > 0) 
+                ? `<div id="startWorkoutContainer" class="text-center">
+                       <button id="startWorkoutBtn" onclick="startFullWorkout('${day}')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full transition-transform hover:scale-105 shadow-lg shadow-red-500/30">
+                           START WORKOUT
+                       </button>
+                   </div>`
+                : '';
+
+            scheduleContainer.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Workout Plan -->
+                    <section class="flex flex-col space-y-4">
+                        <h2 class="font-anton text-3xl font-semibold text-center text-white uppercase">${dayData.title}</h2>
+                        ${startButtonHtml}
+                        <ul class="space-y-3">${workoutHtml}</ul>
+                    </section>
+
+                    <!-- Diet Plan -->
+                    <section class="glassmorphism p-6 rounded-xl">
+                        <h2 class="font-anton text-3xl font-semibold mb-4 text-white uppercase">${dayData.diet.title}</h2>
+                        <ul class="space-y-2">${dietHtml}</ul>
+                    </section>
+                </div>
+            `;
+
+            dayNavButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.day === day);
+            });
+        }
+
+        // --- INITIALIZATION ---
+        const today = new Date();
+        const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
+        document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        dayNavButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                renderSchedule(button.dataset.day);
+                if (timerState !== 'stopped') {
+                     const activeListItem = document.getElementById(`workout-list-item-${currentWorkoutIndex}`);
+                    if(activeListItem) activeListItem.classList.add('active');
+                }
+            });
+        });
+
+        renderSchedule(dayOfWeek);
+    </script>
+
+</body>
+</html>
